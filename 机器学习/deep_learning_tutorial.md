@@ -621,13 +621,21 @@ sigmoid在定义域内处处可导，且两侧导数逐渐趋近于0。
 
 在数学上可理解为一阶导数为常数的函数为线性函数，一阶导数不为常数的函数为非线性函数。
 
+### 为什么RNN一般情况下为等长的
+
+为了让多条数据合并成矩阵进行运算，能够使用并行处理。如果不等长则不能合并为矩阵。tensorflow支持同一批训练数据等长的训练接口。
+
 ## 文本分类
 
 [文本分类模型实现](<https://github.com/DX2048/text_classification>)
 
 ### FastText
 
+[参考](<https://zhuanlan.zhihu.com/p/32965521>)
+
 ### TextCNN
+
+
 
 ### TextRNN
 
