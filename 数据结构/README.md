@@ -111,15 +111,146 @@ $$o(g(n))=$${$$f(n):对任意正常量c> 0，存在常量n_{0}>0，使得对所�
 
 $$w$$记号与$$\Omega $$记号的关系类似于$$o$$记号与$$O$$记号的关系。
 
-$$w(g(n))=$${$$f(n):对任意正常量c> 0，存在常量n_{0}>0，使得对所有n\geq n_{0},有0\leq cg(n)\leq f(n) $$}。例如，$$n^2/2=w(n)$$,但是$$n^2/2\neq w(n^2)$$.
+$$w(g(n))=$${$$f(n):对任意正常量c> 0，存在常量n_{0}>0，使得对所有n\geq n_{0},有0\leq cg(n)\leq f(n) $$}。例如，$$n^2/2=w(n)$$,但是$$n^2/2\neq w(n^2)$$。
+
+# 分治策略
+
+在分治策略中，我们递归地求解一个问题，在每层递归中应用如下三个步骤：
+
+- **分解**步骤将问题划分为一些子问题，子问题的形式与原问题一样，只是规模更小。
+- **解决**步骤递归地求解出子问题。如果子问题的规模足够小，则停止递归，直接求解。
+- **合并**步骤将子问题的解组合成原问题的解。
+
+## 最大子数组问题
+
+案例:
+
+```
+13 -3 -25 20 -3 -16 -23 18 20 -7 12 -5 -22 15 -4 7
+```
+
+最大子数组为18 20 -7 12
+
+### 使用分治策略的求解办法
+
+假定我们要寻找子数组$$A[low..high]$$的最大子数组。使用分治技术意味着我们要将子数组划分为两个规模尽量相等的子数组。也就是说，找到子数组的中央位置，比如mid，然后考虑求解两个子数组$$A[low..mid]$$和$$A[mid+1..high]$$。$$A[low..high]$$的任何连续子数组$$A[i..j]$$所处的位置必然是以下三种情况之一：
+
+- 完全位于子数组$$A[low..mid]$$中
+- 完全位于子数组$$A[mid+1..high]$$中
+- 跨越了中点
+
+```
+def maximum_subarray(arr,low,high):
+    if low == high:
+        return low,high,arr[low]
+    else:
+        mid = (low+high)//2
+        left_low,left_high,left_sum = maximum_subarray(arr,low,mid)
+        right_low,right_high,right_sum = maximum_subarray(arr,mid+1,high)
+        cross_low,cross_high,cross_sum = find_max_crossing_subarray(arr,low,mid,high)
+        if left_sum >= right_sum and left_sum >= cross_sum:
+            return left_low,left_high,left_sum
+        elif right_sum >= left_sum and right_sum >= cross_sum:
+            return right_low,right_high,right_sum
+        else:
+            return cross_low,cross_high,cross_sum
+
+def find_max_crossing_subarray(arr,low,mid,high):
+    arr_sum = 0
+    left_sum = None
+    max_left = None
+    for i in range(mid,low-1,-1):
+        arr_sum += arr[i]
+        if left_sum == None:
+            left_sum = arr_sum
+            max_left = i
+        else:
+            if arr_sum > left_sum:
+                left_sum = arr_sum
+                max_left = i 
+    right_sum = None
+    arr_sum = 0
+    max_right = None
+    for i in range(mid+1,high+1):
+        arr_sum += arr[i]
+        if right_sum == None:
+            right_sum = arr_sum
+            max_right = i
+        else:
+            if arr_sum > right_sum:
+                right_sum = arr_sum
+                max_right = i
+    return max_left,max_right,left_sum+right_sum
+```
+
+时间复杂度为$$\Theta(nlgn)$$。
+
+## 矩阵乘法的$Strassen$算法
+
+为简单起见，当使用分治算法计算矩阵积$$C=A\cdot B​$$时，假定三个矩阵均为$$n\times n​$$矩阵，其中n为2的幂。当n不为2的幂时，需要进行变形。
+$$
+A = \begin{bmatrix}
+A_{11} & A_{12}\\ 
+A_{21} & A_{22}
+\end{bmatrix},B=\begin{bmatrix}
+B_{11} &B_{12} \\ 
+B_{21} & B_{22}
+\end{bmatrix},C = \begin{bmatrix}
+C_{11} &C_{12} \\ 
+C_{21} & C_{22}
+\end{bmatrix} \\
+$$
+因此可以将公式$$C=A\cdot B$$改写为：
+$$
+\begin{bmatrix}
+C_{11} &C_{12} \\ 
+C_{21} & C_{22}
+\end{bmatrix}=\begin{bmatrix}
+A_{11} & A_{12}\\ 
+A_{21} & A_{22}
+\end{bmatrix}\cdot \begin{bmatrix}
+B_{11} &B_{12} \\ 
+B_{21} & B_{22}
+\end{bmatrix}\\
+$$
+等价于如下4个公式：
+$$
+\begin{aligned}
+C_{11}=A_{11}\cdot B_{11}+A_{12}\cdot B_{21}\\
+C_{12}=A_{11}\cdot B_{12}+A_{12}\cdot B_{22}\\
+C_{21}=A_{21}\cdot B_{11}+A_{22}\cdot B_{21}\\
+C_{22}=A_{21}\cdot B_{12}+A_{22}\cdot B_{22}
+\end{aligned}
+$$
+$$strassen$$算法之所以要n为2的幂的原因在于矩阵二分后，两个子矩阵加减法要满足相同规模。
+
+当n不为2的幂时:把矩阵补全成为2的幂次规模即可。由于矩阵乘法性质，就算扩大矩阵（补0），也会保留原有的结果，而其他部分为0，也就是说算完之后再从结果矩阵将需要部分扣下来即可。
+
 
 # 概率分析和随机算法
+
+当分析一个随机算法的运行时间时，我们以运行时间的期望值衡量，其中输入值由随机数生成器产生。我们将一个随机算法的运行时间称为期望运行时间。
 
 ## 雇用问题
 
 **概率分析：**我们对所有可能输入产生的运行时间取平均。当报告此种类型的运行时间时，我们称其为平均情况运行时间。
 
 ## 指示器随机变量
+
+# 堆排序
+
+堆是一个数组，它可以被看成一个近似的完全二叉树。树上的每一个结点对应数组中的一个元素。除了最底层外，该树是完全充满的，而且是从左向右填充。
+
+在最大堆中，最大堆性质是指除了根以外的所有结点$$i$$都要满足：
+$$
+A[PARENT(i)]\geq A[i]
+$$
+最小堆性质是除了根以外的所有结点$$i$$都有
+$$
+A[PARENT(i)]\leq  A[i]
+$$
+
+## 维护堆的性质
 
 
 
