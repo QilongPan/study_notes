@@ -214,6 +214,10 @@ scores = cross_val_score(knn,train,test,cv=10,scoring='accuracy')
 
 **查全率**：正例有多少被预测正确。P=TP/(TP+FN)
 
+## xgboost
+
+
+
 ## 常见问题
 
 ### 过拟合解决办法

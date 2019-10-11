@@ -625,6 +625,61 @@ sigmoid在定义域内处处可导，且两侧导数逐渐趋近于0。
 
 为了让多条数据合并成矩阵进行运算，能够使用并行处理。如果不等长则不能合并为矩阵。tensorflow支持同一批训练数据等长的训练接口。
 
+### Padding 等于SAME和VALID
+
+Padding运算作用于输入向量的每一维，每一维的操作都是一致的，所以理解Padding的操作，只需要理解一维向量的padding过程
+
+假设一个一维向量，输入形状为input_size，经过滤波操作后的输出形状为output_size，滤波窗口为filter_size，需要padding的个数为padding_needed，滤波窗口滑动步长为stride，则之间满足关系：
+$$
+output_size=(input_size+padding_needed-filter_size)/stride+1
+$$
+由公式可知，指定padding_needed可以确定output_size的值，反过来，如果已知输出的形状，则进而可以确定padding的数量。
+
+这是两种处理padding的方案，pytorch采用的是第一种，即在卷积或池化时先确定padding数量，自动推导输出形状；tensorflow和caffe采用的是更为人熟知的第二种，即先根据Valid还是Same确定输出大小，再自动确定padding的数量
+
+Valid和Same是预设的两种padding模式，Valid指不padding，same指输出大小尽可能和输入大小成比例
+
+下面是tensorflow计算padding的代码：
+
+```
+作者：JamesPlur
+链接：https://zhuanlan.zhihu.com/p/73118626
+来源：知乎
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+void GetWindowedOutputSize(int64_t input_size, int32_t filter_size, int32_t dilation_rate,
+                           int32_t stride, const std::string& padding_type, 
+                           int64_t* output_size,int32_t* padding_before, 
+                           int32_t* padding_after) {
+  CHECK_GT(stride, 0);
+  CHECK_GE(dilation_rate, 1);
+
+  int32_t effective_filter_size = (filter_size - 1) * dilation_rate + 1;
+  if (padding_type == "valid") {
+    if (output_size) { *output_size = (input_size - effective_filter_size + stride) / stride; }
+    if (padding_before) { *padding_before = 0; }
+    if (padding_after) { *padding_after = 0; }
+  } else if (padding_type == "same") {
+    int64_t tmp_output_size = (input_size + stride - 1) / stride;
+    if (output_size) { *output_size = tmp_output_size; }
+    const int32_t padding_needed = std::max(
+        0,
+        static_cast<int32_t>((tmp_output_size - 1) * stride + effective_filter_size - input_size));
+    // For odd values of total padding, add more padding at the 'right'
+    // side of the given dimension.
+    if (padding_before) { *padding_before = padding_needed / 2; }
+    if (padding_after) { *padding_after = padding_needed - padding_needed / 2; }
+  } else {
+    UNIMPLEMENTED();
+  }
+  if (output_size) { CHECK_GE((*output_size), 0); }
+}
+```
+
+[参考]: https://www.zhihu.com/search?type=content&amp;q=padding%3DSAME
+
+
+
 ## 论文阅读
 
 ## AlexNet深度卷积神经网络
