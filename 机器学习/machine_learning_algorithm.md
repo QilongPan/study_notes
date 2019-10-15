@@ -216,6 +216,15 @@ scores = cross_val_score(knn,train,test,cv=10,scoring='accuracy')
 
 ## xgboost
 
+### 绘制特征重要性排名
+
+```
+def plot_features(booster, figsize):    
+    fig, ax = plt.subplots(1,1,figsize=figsize)
+    return plot_importance(booster=booster, ax=ax)
+plot_features(model, (10,14))
+```
+
 
 
 ## 常见问题
