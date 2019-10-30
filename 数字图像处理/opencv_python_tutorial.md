@@ -198,3 +198,7 @@ img = cv2.polylines(img,[pts],True,(0,255,255))
 
 ### Basic Operations on Images
 
+##  目标检测
+
+### Face Detection using Haar Cascades
+
